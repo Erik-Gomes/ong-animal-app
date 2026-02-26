@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🐾 Plataforma de Adoção ONG UPAR
 
-## Getting Started
+Um Web App moderno e responsivo desenvolvido para a ONG UPAR (União Protetora dos Animais de Rua) de Indaiatuba. A plataforma visa facilitar o processo de adoção através de um sistema de "Match" de compatibilidade e divulgar eventos da ONG.
 
-First, run the development server:
+## 🚀 Tecnologias Utilizadas
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Este projeto foi construído focando em performance, escalabilidade e manutenibilidade a longo prazo:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+* **[Next.js 16+](https://nextjs.org/)**: Framework React (App Router) para renderização rápida e otimização de SEO.
+* **[React](https://reactjs.org/)**: Biblioteca para construção das interfaces de usuário.
+* **[Tailwind CSS v4](https://tailwindcss.com/)**: Framework utilitário de CSS para estilização ágil e responsiva.
+* **[TypeScript](https://www.typescriptlang.org/)**: Tipagem estática para evitar erros durante o desenvolvimento.
+* **[Lucide React](https://lucide.dev/)**: Biblioteca de ícones limpos e leves.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🎨 Identidade Visual (Design Tokens)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+O projeto segue uma paleta de cores minimalista e amigável, configurada globalmente no Tailwind:
 
-## Learn More
+* **Background (Creme):** `#FFFCF9` - Usado no fundo principal.
+* **Primary (Vermelho UPAR):** `#E5232B` - Usado para destaques, botões ativos e interações (hover).
+* **Secondary (Azul Mudo):** `#384763` - Usado para textos principais, cabeçalhos e fundos de banners.
+* **Bordas:** Arredondamentos severos (`rounded-2xl`, `rounded-4xl`) para passar uma sensação de ambiente acolhedor e amigável.
 
-To learn more about Next.js, take a look at the following resources:
+## 🧩 Componentes Principais
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+* **`Header`**: Barra de navegação superior com um menu lateral oculto (Sidebar) acionado pelo ícone customizado da pata da UPAR.
+* **`MatchBanner`**: Call-to-action (CTA) principal convidando o usuário a preencher o formulário de compatibilidade.
+* **`Events`**: Carrossel horizontal de eventos filtrável através de uma fita de meses (Ribbon Calendar) com scroll inteligente (snap).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Estrutura
 
-## Deploy on Vercel
+ONG-ANIMAL-APP/
+├── public/                 # Imagens estáticas e assets públicos
+├── src/
+│   ├── app/                # Rotas e configurações globais do Next.js (App Router)
+│   │   ├── favicon.ico     # Ícone da aba do navegador
+│   │   ├── globals.css     # CSS Global (onde configuramos as cores do Tailwind)
+│   │   ├── layout.tsx      # Estrutura base do HTML (cabeçalho, metadados)
+│   │   └── page.tsx        # Página principal (Home) que junta todos os componentes
+│   │
+│   └── components/         # Pedaços reutilizáveis da interface
+│       ├── icons/          # Ícones customizados
+│       │   ├── Paw.svg     # Arquivo original do ícone da UPAR
+│       │   └── PawIcon.tsx # Componente React do ícone (permite mudar de cor)
+│       ├── Events.tsx      # Componente do Calendário de Eventos (Fita de meses e cards)
+│       ├── Header.tsx      # Cabeçalho superior com menu lateral (Sidebar)
+│       └── MatchBanner.tsx # Banner azul de chamada para o formulário de compatibilidade
+│
+├── package.json            # Lista de dependências (Next.js, Tailwind, Lucide React)
+├── tailwind.config.ts      # (Ou via globals.css) Configurações de design da aplicação
+└── tsconfig.json           # Configurações do TypeScript
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

@@ -18,11 +18,12 @@ export default function Header() {
   return (
     <>
       {/* Barra Superior */}
-      <header className="flex justify-between items-center py-6 px-8 relative z-30">
-            {/* Título da ONG */}
+      <header className="flex justify-end py-6 px-8 relative z-30">
+            {/* Título da ONG 
             <div className="text-2xl font-bold text-[var(--color-secondary)] tracking-tight">
             ONG UPAR
             </div>
+            */}
 
             {/* Botão da Patinha */}
             <button
