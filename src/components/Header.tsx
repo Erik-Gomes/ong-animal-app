@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PawIcon } from "@/components/icons/PawIcon";
-import {  
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { 
   X, 
   User, 
   CalendarHeart, 
@@ -14,25 +17,61 @@ import {
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLogado, setIsLogado] = useState(false);
+  const [primeiroNome, setPrimeiroNome] = useState("");
+  
+  const router = useRouter();
+  const supabase = createClient();
+
+  // Busca o usuário logado assim que o Header aparece na tela
+  useEffect(() => {
+    async function getUser() {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        setIsLogado(true);
+        // Pega o nome completo que salvamos no cadastro e corta no primeiro espaço
+        const nomeCompleto = session.user.user_metadata?.nome || "Adotante";
+        const nome = nomeCompleto.split(" ")[0]; 
+        setPrimeiroNome(nome);
+      }
+    }
+
+    getUser();
+
+    // Isso faz o Header se atualizar automaticamente caso o usuário faça login/logout
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setIsLogado(true);
+        const nomeCompleto = session.user.user_metadata?.nome || "Adotante";
+        setPrimeiroNome(nomeCompleto.split(" ")[0]);
+      } else {
+        setIsLogado(false);
+        setPrimeiroNome("");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
+
+  // Função para deslogar do sistema
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsOpen(false);
+    router.push("/login"); // Manda de volta pra tela de login
+  };
 
   return (
     <>
       {/* Barra Superior */}
       <header className="flex justify-end py-6 px-8 relative z-30">
-            {/* Título da ONG 
-            <div className="text-2xl font-bold text-[var(--color-secondary)] tracking-tight">
-            ONG UPAR
-            </div>
-            */}
-
-            {/* Botão da Patinha */}
-            <button
-            onClick={() => setIsOpen(true)}
-            className="text-[var(--color-secondary)] hover:text-[var(--color-primary)] hover:scale-110 transition-all duration-200"
-            aria-label="Abrir menu"
-            >
-            <PawIcon size={42} />
-            </button>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="text-[var(--color-secondary)] hover:text-[var(--color-primary)] hover:scale-110 transition-all duration-200"
+          aria-label="Abrir menu"
+        >
+          <PawIcon size={42} />
+        </button>
       </header>
 
       {/* Fundo escuro desfocado quando o menu abre */}
@@ -62,18 +101,33 @@ export default function Header() {
         {/* Conteúdo do Menu */}
         <div className="flex-1 overflow-y-auto px-6 flex flex-col gap-8">
           
-          {/* Perfil */}
-          <div className="flex flex-col items-center gap-3 pb-6 border-b border-[var(--color-secondary)]/10">
-            <div className="w-20 h-20 bg-[var(--color-secondary)]/20 rounded-full flex items-center justify-center text-[var(--color-secondary)]">
-              <User size={40} />
+          {/* Perfil Condicional (Logado vs Visitante) */}
+          {isLogado ? (
+            <div className="flex flex-col items-center gap-3 pb-6 border-b border-[var(--color-secondary)]/10">
+              <div className="w-20 h-20 bg-[var(--color-secondary)]/20 rounded-full flex items-center justify-center text-[var(--color-secondary)]">
+                <User size={40} />
+              </div>
+              <div className="text-center">
+                <h3 className="font-bold text-lg text-[var(--color-secondary)]">Olá, {primeiroNome}</h3>
+                {/* Já deixei o link pronto para a página do Questionário! */}
+                <Link href="/questionario" onClick={() => setIsOpen(false)} className="text-sm text-[var(--color-primary)] hover:underline mt-1 block">
+                  Fazer teste de perfil
+                </Link>
+              </div>
             </div>
-            <div className="text-center">
-              <h3 className="font-bold text-lg text-[var(--color-secondary)]">Olá, Adotante</h3>
-              <button className="text-sm text-[var(--color-primary)] hover:underline mt-1">
-                Refazer teste de perfil
-              </button>
+          ) : (
+            <div className="flex flex-col items-center gap-3 pb-6 border-b border-[var(--color-secondary)]/10">
+              <div className="w-20 h-20 bg-[var(--color-secondary)]/10 rounded-full flex items-center justify-center text-[var(--color-secondary)]/40">
+                <User size={40} />
+              </div>
+              <div className="text-center">
+                <h3 className="font-bold text-lg text-[var(--color-secondary)]">Olá, Visitante</h3>
+                <Link href="/login" onClick={() => setIsOpen(false)} className="text-sm font-bold text-[var(--color-primary)] hover:underline mt-1 block">
+                  Faça login ou cadastre-se
+                </Link>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Ações da ONG */}
           <div className="flex flex-col gap-4">
@@ -98,13 +152,19 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Rodapé do Menu (Logout) */}
-        <div className="p-6 border-t border-[var(--color-secondary)]/10">
-          <button className="group flex items-center gap-3 w-full p-3 rounded-2xl text-[var(--color-secondary)] hover:bg-[var(--color-primary)]/10 transition-colors">
-            <LogOut size={20} className="group-hover:text-[var(--color-primary)] transition-colors" /> 
-            <span className="font-medium group-hover:text-[var(--color-primary)] transition-colors">Sair da conta</span>
-          </button>
-        </div>
+        {/* Rodapé do Menu (Logout) - Só aparece se estiver logado! */}
+        {isLogado && (
+          <div className="p-6 border-t border-[var(--color-secondary)]/10">
+            <button 
+              onClick={handleLogout}
+              className="group flex items-center gap-3 w-full p-3 rounded-2xl text-[var(--color-secondary)] hover:bg-[var(--color-primary)]/10 transition-colors"
+            >
+              <LogOut size={20} className="group-hover:text-[var(--color-primary)] transition-colors" /> 
+              <span className="font-medium group-hover:text-[var(--color-primary)] transition-colors">Sair da conta</span>
+            </button>
+          </div>
+        )}
+
       </div>
     </>
   );
