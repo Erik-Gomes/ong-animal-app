@@ -85,7 +85,7 @@ export function Events() {
             <button
               key={month}
               onClick={() => setActiveMonth(month)}
-              className={`snap-start shrink-0 px-5 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
+              className={`snap-start shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
                 activeMonth === month
                   ? "bg-[var(--color-primary)] text-[var(--color-background)] shadow-md transform scale-105"
                   : "bg-[var(--color-background)] text-[var(--color-secondary)] border border-[var(--color-secondary)]/10 hover:border-[var(--color-primary)]/50 hover:text-[var(--color-primary)]"
