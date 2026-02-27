@@ -1,49 +1,66 @@
 "use client";
 
+import { createClient } from "@/utils/supabase/client";
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
-import { supabase } from "@/lib/supabase"; // Importamos a nossa conexão com o banco!
 
+
+// O índice + 1 nos dá o número do mês (JAN = 0 + 1 = 1)
 const allMonths = [
   "JAN", "FEV", "MAR", "ABR", "MAI", "JUN", 
   "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"
 ];
 
-// Definimos o formato do nosso Evento baseado no banco de dados
 interface Evento {
   id: string;
   titulo: string;
-  dia: string;
-  mes: string;
+  data_completa: string; // Ex: "2026-02-28"
 }
 
 export function Events() {
-  const [activeMonth, setActiveMonth] = useState("MAR"); // Mudei o padrão para MAR para vermos o teste
-  const [eventosDoBanco, setEventosDoBanco] = useState<Evento[]>([]); // Estado que vai guardar os dados reais
+  const [activeMonth, setActiveMonth] = useState("FEV");
+  const [eventosDoBanco, setEventosDoBanco] = useState<Evento[]>([]);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // O useEffect roda uma vez assim que o componente aparece na tela
-  useEffect(() => {
-    async function carregarEventos() {
-      // Pedimos para o Supabase: "Traga todos (*) os eventos e ordene pela data_completa"
-      const { data, error } = await supabase
-        .from('eventos')
-        .select('*')
-        .order('data_completa', { ascending: true });
+  const supabase = createClient();
 
-      if (error) {
-        console.error("Erro ao buscar eventos:", error);
-      } else if (data) {
-        console.log("EVENTOS CHEGANDO DO SUPABASE:", data);
-        setEventosDoBanco(data); // Salvamos os dados reais no estado do React
-      }
-    }
+    // 1. Busca os dados do Supabase
+    useEffect(() => {
+        async function carregarEventos() {
+        const { data, error } = await supabase
+            .from('eventos')
+            .select('*');
 
-    carregarEventos();
-  }, []);
+        if (error) {
+            console.error("Erro ao buscar eventos:", error.message);
+        } else if (data) {
+            setEventosDoBanco(data);
+        }
+        }
 
-  // Agora filtramos os eventos que vieram do banco, não mais os de mentirinha
-  const filteredEvents = eventosDoBanco.filter(event => event.mes === activeMonth);
+        carregarEventos();
+    }, [supabase]);
+
+    // 2. Lógica de Filtro e Conversão
+    // Transforma "FEV" em "02", "MAR" em "03", etc.
+    const getMesNumero = (mesTexto: string) => {
+        const index = allMonths.indexOf(mesTexto); // FEV é index 1
+        const numero = index + 1; // 1 + 1 = 2
+        return numero.toString().padStart(2, '0'); // Garante que fique "02" e não "2"
+    };
+
+    const mesAtivoNumero = getMesNumero(activeMonth); // Se for "FEV", vira "02"
+
+    // 3. Filtramos os eventos verificando se o "02" está dentro do "2026-02-28"
+    const filteredEvents = eventosDoBanco.filter(event => {
+        if (!event.data_completa) return false;
+    
+        // Divide "2026-02-28" em ["2026", "02", "28"]
+        const pedacos = event.data_completa.split('-'); 
+        const mesDoEvento = pedacos[1]; // Pega o "02"
+
+        return mesDoEvento === mesAtivoNumero; // "02" === "02"? Se sim, mostra!
+    });
 
   const scroll = (direction: "left" | "right") => {
     if (carouselRef.current) {
@@ -57,7 +74,6 @@ export function Events() {
 
   return (
     <div className="w-full flex flex-col gap-6">
-      
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <h3 className="text-2xl font-bold text-[var(--color-secondary)] flex items-center gap-2 shrink-0">
           <Calendar size={28} className="text-[var(--color-primary)]" />
@@ -94,22 +110,27 @@ export function Events() {
           className="flex gap-4 overflow-x-auto snap-x snap-mandatory py-4 px-2 pr-8 [&::-webkit-scrollbar]:hidden w-full scroll-smooth min-h-[160px]"
         >
           {filteredEvents.length > 0 ? (
-            filteredEvents.map((event) => (
-              <div 
-                key={event.id}
-                className="snap-start shrink-0 w-40 md:w-48 bg-[var(--color-background)] rounded-2xl p-5 shadow-sm shadow-[var(--color-secondary)]/10 flex flex-col items-center justify-center text-center gap-1 border border-[var(--color-secondary)]/5 hover:-translate-y-1 hover:shadow-md hover:border-[var(--color-primary)]/30 transition-all cursor-pointer group/card"
-              >
-                <div className="text-3xl font-black text-[var(--color-primary)] leading-none group-hover/card:scale-110 transition-transform">
-                  {event.dia}
+            filteredEvents.map((event) => {
+              // Extraímos o dia só na hora de desenhar na tela
+              const diaDisplay = event.data_completa.split('-')[2].substring(0, 2); // substring garante que pega só "28" e ignora "28T00:00" se houver
+
+              return (
+                <div 
+                  key={event.id}
+                  className="snap-start shrink-0 w-40 md:w-48 bg-[var(--color-background)] rounded-2xl p-5 shadow-sm shadow-[var(--color-secondary)]/10 flex flex-col items-center justify-center text-center gap-1 border border-[var(--color-secondary)]/5 hover:-translate-y-1 hover:shadow-md hover:border-[var(--color-primary)]/30 transition-all cursor-pointer group/card"
+                >
+                  <div className="text-3xl font-black text-[var(--color-primary)] leading-none group-hover/card:scale-110 transition-transform">
+                    {diaDisplay}
+                  </div>
+                  <div className="text-sm font-bold text-[var(--color-secondary)] mb-1">
+                    {activeMonth} {/* Usamos a própria variável do botão (ex: FEV) */}
+                  </div>
+                  <div className="text-sm font-medium text-[var(--color-secondary)] leading-tight">
+                    {event.titulo}
+                  </div>
                 </div>
-                <div className="text-sm font-bold text-[var(--color-secondary)] mb-1">
-                  {event.mes}
-                </div>
-                <div className="text-sm font-medium text-[var(--color-secondary)] leading-tight">
-                  {event.titulo}
-                </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="w-full flex flex-col items-center justify-center text-[var(--color-secondary)]/50 py-8">
               <Calendar size={48} className="mb-2 opacity-20" />
