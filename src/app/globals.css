@@ -6,8 +6,7 @@
   --color-secondary: #384763;
 }
 
-@theme inline {
-  --color-background: var(--color-background);
+:root {
   --color-foreground: var(--color-secondary);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
