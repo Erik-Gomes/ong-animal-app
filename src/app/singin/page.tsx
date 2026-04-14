@@ -146,7 +146,7 @@ export default function CadastroPage() {
 
             <div className="mt-6 text-center text-sm font-medium text-[var(--color-secondary)]/60">
               Já tem uma conta?{" "}
-              <Link href="/login" className="text-[var(--color-primary)] font-bold hover:underline">
+              <Link href="/login" className="text-[var(--color-primary)] font-bold">
                 Faça login aqui
               </Link>
             </div>

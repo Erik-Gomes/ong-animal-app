@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { PawPrint } from "lucide-react";
+import { PawIcon } from "@/components/icons/PawIcon";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -40,11 +41,11 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-white p-8 rounded-3xl shadow-lg border border-[var(--color-secondary)]/10">
         <div className="flex flex-col items-center mb-8">
           <div className="bg-[var(--color-primary)]/10 p-4 rounded-full mb-4 text-[var(--color-primary)]">
-            <PawPrint size={40} />
+            <PawIcon size={40} />
           </div>
           <h1 className="text-3xl font-black text-[var(--color-secondary)]">Bem-vindo(a)</h1>
           <p className="text-sm font-medium text-[var(--color-secondary)]/60 text-center mt-2">
-            Faça login para encontrar o seu match perfeito ou gerenciar a ONG.
+            Faça login e conheça mais sobre a UPAR.
           </p>
         </div>
 
