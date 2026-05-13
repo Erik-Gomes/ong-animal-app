@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
-import { ChevronDown } from "lucide-react";
+import { useState, useRef, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 interface Option {
   value: string;
@@ -16,12 +16,12 @@ interface CustomSelectProps {
   placeholder?: string;
 }
 
-export function CustomSelect({ 
-  label, 
-  value, 
-  onChange, 
-  options, 
-  placeholder = "Selecione uma opção..." 
+export function CustomSelect({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder = 'Selecione uma opção...',
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
@@ -29,12 +29,15 @@ export function CustomSelect({
   // Fecha o menu se o usuário clicar fora dele
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+      if (
+        selectRef.current &&
+        !selectRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Encontra qual é a opção selecionada no momento para mostrar no botão
@@ -44,33 +47,35 @@ export function CustomSelect({
     <div className="flex flex-col gap-1 relative w-full" ref={selectRef}>
       {/* Label Opcional */}
       {label && (
-        <label className="text-sm font-bold text-[var(--color-secondary)] ml-1">
+        <label className="text-sm font-bold text-(--color-secondary) ml-1">
           {label}
         </label>
       )}
-      
+
       {/* Botão Principal */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all text-left bg-white w-full focus:outline-none ${
-          isOpen 
-            ? "border-[var(--color-primary)] ring-1 ring-[var(--color-primary)] text-[var(--color-secondary)]" 
-            : "border-[var(--color-secondary)]/20 text-[var(--color-secondary)] hover:border-[var(--color-secondary)]/40"
+          isOpen
+            ? 'border-(--color-primary) ring-1 ring-(--color-primary) text-(--color-secondary)'
+            : 'border-(--color-secondary)/20 text-(--color-secondary) hover:border-(--color-secondary)/40'
         }`}
       >
-        <span className={`truncate ${!selectedOption ? "text-[var(--color-secondary)]/50 font-normal" : "font-medium"}`}>
+        <span
+          className={`truncate ${!selectedOption ? 'text-(--color-secondary)/50 font-normal' : 'font-medium'}`}
+        >
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <ChevronDown 
-          size={20} 
-          className={`shrink-0 text-[var(--color-secondary)]/50 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} 
+        <ChevronDown
+          size={20}
+          className={`shrink-0 text-(--color-secondary)/50 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
       {/* Lista Suspensa (Dropdown) */}
       {isOpen && (
-        <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white border border-[var(--color-secondary)]/10 rounded-xl shadow-xl z-50 overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white border border-(--color-secondary)/10 rounded-xl shadow-xl z-50 overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="max-h-60 overflow-y-auto custom-scrollbar">
             {options.map((option) => (
               <button
@@ -82,8 +87,8 @@ export function CustomSelect({
                 }}
                 className={`w-full text-left px-4 py-3 transition-colors text-sm ${
                   value === option.value
-                    ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-bold border-l-4 border-[var(--color-primary)]"
-                    : "text-[var(--color-secondary)] font-medium hover:bg-[var(--color-secondary)]/5 border-l-4 border-transparent"
+                    ? 'bg-(--color-primary)/10 text-(--color-primary) font-bold border-l-4 border-(--color-primary)'
+                    : 'text-(--color-secondary) font-medium hover:bg-(--color-secondary)/5 border-l-4 border-transparent'
                 }`}
               >
                 {option.label}
