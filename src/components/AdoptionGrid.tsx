@@ -163,27 +163,22 @@ export function AdoptionGrid() {
           </h3>
         </div>
 
-        {/* Aqui você pode adicionar cards de estatísticas, botões rápidos, etc. */}
+        {/* Grid de acesso rápido */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-(--color-secondary)/10 flex flex-col items-center text-center gap-3">
-            <div className="bg-(--color-primary)/10 p-4 rounded-full text-(--color-primary)">
+          <Link
+            href="/cadastro-animal"
+            className="bg-white p-6 rounded-3xl shadow-sm border border-(--color-secondary)/10 flex flex-col items-center text-center gap-3 hover:shadow-md hover:border-(--color-primary)/50 hover:-translate-y-1 transition-all group cursor-pointer"
+          >
+            <div className="bg-(--color-primary)/10 p-4 rounded-full text-(--color-primary) group-hover:scale-110 transition-transform duration-300">
               <PlusCircle size={32} />
             </div>
-            <h4 className="font-bold text-lg text-(--color-secondary)">
+            <h4 className="font-bold text-lg text-(--color-secondary) group-hover:text-(--color-primary) transition-colors">
               Cadastrar Animal
             </h4>
             <p className="text-sm text-(--color-secondary)/60">
               Adicione um novo pet ao sistema para adoção.
             </p>
-            <Link
-              href="/cadastro-animal"
-              className="mt-2 text-sm font-bold text-(--color-primary)"
-            >
-              <button className="flex items-center gap-3 text-(--color-secondary) hover:text-(--color-primary) font-medium transition-colors">
-                <PlusCircle size={20} /> Cadastrar Animal
-              </button>
-            </Link>
-          </div>
+          </Link>
 
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-(--color-secondary)/10 flex flex-col items-center text-center gap-3 opacity-50">
             <h4 className="font-bold text-lg text-(--color-secondary)">
