@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/static-components */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -87,7 +88,7 @@ export default function QuestionarioPage() {
   }) => (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between w-full gap-2">
-        {[1, 2, 3, 4, 5].map((num) => (
+        {[1, 2, 3].map((num) => (
           <button
             key={num}
             type="button"
@@ -103,9 +104,9 @@ export default function QuestionarioPage() {
         ))}
       </div>
       <div className="flex justify-between text-xs font-bold text-(--color-secondary)/50 px-1">
-        <span className="w-1/3 text-left">{labels[0]}</span>
+        <span className="w-1/3 text-center">{labels[0]}</span>
         <span className="w-1/3 text-center">{labels[1]}</span>
-        <span className="w-1/3 text-right">{labels[2]}</span>
+        <span className="w-1/3 text-center">{labels[2]}</span>
       </div>
     </div>
   );
@@ -153,50 +154,107 @@ export default function QuestionarioPage() {
           </div>
 
           <form onSubmit={salvarQuestionario} className="flex flex-col gap-10">
-            {/* Pergunta 1: Energia/Passeios */}
             <div className="flex flex-col gap-4">
               <label className="text-lg font-bold text-(--color-secondary)">
-                1. Qual a sua disposição para passeios e atividades físicas?
+                1. Qual o porte de animal que você busca e que se adequa ao seu espaço?
               </label>
               <SelectorBar
                 value={disposicao}
                 setter={setDisposicao}
                 labels={[
-                  'Prefiro ficar no sofá',
-                  'Passeios curtos',
-                  'Atleta / Corro todos os dias',
+                  'Pequeno',
+                  'Médio',
+                  'Grande',
                 ]}
               />
             </div>
 
-            {/* Pergunta 2: Espaço */}
             <div className="flex flex-col gap-4">
               <label className="text-lg font-bold text-(--color-secondary)">
-                2. Como é o espaço da sua residência?
+                2. Qual a faixa etária do animal que você tem preferência em adotar?
               </label>
               <SelectorBar
                 value={espaco}
                 setter={setEspaco}
                 labels={[
-                  'Apartamento pequeno',
-                  'Casa com quintal médio',
-                  'Sítio / Muito espaço',
+                  'Filhote',
+                  'Adulto',
+                  'Idoso',
                 ]}
               />
             </div>
 
-            {/* Pergunta 3: Sociabilidade */}
             <div className="flex flex-col gap-4">
               <label className="text-lg font-bold text-(--color-secondary)">
-                3. Como é a convivência e movimentação na sua casa?
+                3. Como é a rotina da casa em termos de agitação e passeios?
               </label>
               <SelectorBar
                 value={sociabilidade}
                 setter={setSociabilidade}
                 labels={[
-                  'Moro sozinho / Silêncio',
-                  'Recebo algumas visitas',
-                  'Casa cheia / Outros pets',
+                  'Rotina caseira',
+                  'Passeios regulares',
+                  'Alta',
+                ]}
+              />
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <label className="text-lg font-bold text-(--color-secondary)">
+                4. Há crianças morando na residência ou que visitam com frequência?
+              </label>
+              <SelectorBar
+                value={sociabilidade}
+                setter={setSociabilidade}
+                labels={[
+                  'Não',
+                  'As vezes',
+                  'Sim',
+                ]}
+              />
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <label className="text-lg font-bold text-(--color-secondary)">
+                5. Você já possui outros animais de estimação em casa?
+              </label>
+              <SelectorBar
+                value={sociabilidade}
+                setter={setSociabilidade}
+                labels={[
+                  'Não',
+                  '',
+                  'Sim',
+                ]}
+              />
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <label className="text-lg font-bold text-(--color-secondary)">
+                6. Qual é o tipo de residência e o espaço disponível para o animal?
+              </label>
+              <SelectorBar
+                value={sociabilidade}
+                setter={setSociabilidade}
+                labels={[
+                  'Sem quintal',
+                  'Quintal pequeno',
+                  'Quintal Grande',
+                ]}
+              />
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <label className="text-lg font-bold text-(--color-secondary)">
+                7. Em média, quantas horas por dia o animal ficará sozinho em casa?
+              </label>
+              <SelectorBar
+                value={sociabilidade}
+                setter={setSociabilidade}
+                labels={[
+                  'Até 4 horas',
+                  'De 4 a 8 horas',
+                  'Mais de 8 horas ',
                 ]}
               />
             </div>

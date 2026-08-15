@@ -175,7 +175,6 @@ export default function Header() {
               </h4>
               <Link
                 href="/cadastro-animal"
-                className="mt-2 text-sm font-bold text-(--color-primary)"
               >
                 <button className="flex items-center gap-3 text-(--color-secondary) hover:text-(--color-primary) font-medium transition-colors">
                   <PlusCircle size={20} /> Cadastrar Animal
@@ -183,15 +182,18 @@ export default function Header() {
               </Link>
               <Link
                 href="/gerenciar-animais"
-                className="mt-2 text-sm font-bold text-(--color-primary)"
               >
                 <button className="flex items-center gap-3 text-(--color-secondary) hover:text-(--color-primary) font-medium transition-colors">
                   <PlusCircle size={20} /> Gerenciar Animais
                 </button>
               </Link>
-              <button className="flex items-center gap-3 text-(--color-secondary) hover:text-(--color-primary) font-medium transition-colors">
-                <CalendarDays size={20} /> Gerenciar Eventos
-              </button>
+              <Link
+                href="/gerenciar-eventos"
+              > 
+                <button className="flex items-center gap-3 text-(--color-secondary) hover:text-(--color-primary) font-medium transition-colors">
+                  <CalendarDays size={20} /> Gerenciar Eventos
+                </button>
+              </Link>
               <button className="flex items-center gap-3 text-(--color-secondary) hover:text-(--color-primary) font-medium transition-colors">
                 <Users size={20} /> Ver Adotantes
               </button>
