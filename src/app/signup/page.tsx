@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { PawPrint, UserPlus } from 'lucide-react';
 import Link from 'next/link';
-import { BackButton } from '@/components/BackBttn';
+import BackBttn from '@/components/BackBttn';
 
 export default function CadastroPage() {
   const [nome, setNome] = useState('');
@@ -66,7 +66,7 @@ export default function CadastroPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-(--color-background) px-6">
-      <BackButton className="mb-8" />
+      <BackBttn className="mb-8" />
       <div className="w-full max-w-md bg-white p-8 rounded-3xl shadow-lg border border-(--color-secondary)/10">
         {sucesso ? (
           <div className="flex flex-col items-center text-center py-10">

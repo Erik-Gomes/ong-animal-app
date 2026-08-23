@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { PawIcon } from '@/components/icons/PawIcon';
-import { BackButton } from '@/components/BackBttn';
+import BackBttn from '@/components/BackBttn';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -38,7 +38,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-(--color-background) px-6">
-      <BackButton className="mb-8" />
+      <BackBttn className="mb-8" />
       <div className="w-full max-w-md bg-white p-8 rounded-3xl shadow-lg border border-(--color-secondary)/10">
         <div className="flex flex-col items-center mb-8">
           <div className="bg-(--color-primary)/10 p-4 rounded-full mb-4 text-(--color-primary)">

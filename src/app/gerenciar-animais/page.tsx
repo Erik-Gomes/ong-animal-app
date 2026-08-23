@@ -5,8 +5,7 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, PlusCircle, Edit, Search } from 'lucide-react';
-import { calcularIdade } from '@/utils/utils'; // Importando a função que criamos!
-
+import { calcularIdade } from '@/utils/utils'; 
 interface Animal {
   id: string;
   nome: string;

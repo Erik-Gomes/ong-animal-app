@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ArrowLeft, CheckCircle, AlertTriangle, FileText, ShieldAlert } from "lucide-react";
 import Link from "next/link";
-import { BackButton } from "@/components/BackBttn"; // Usando o botão que criamos!
+import BackBttn from "@/components/BackBttn"; // Usando o botão que criamos!
 import { CustomSelect } from "@/components/ui/CustomSelect";
 
 export default function TermoAdocaoPage() {
@@ -112,7 +112,7 @@ export default function TermoAdocaoPage() {
   return (
     <div className="min-h-screen bg-[var(--color-background)] pb-20">
       <div className="max-w-3xl mx-auto pt-10 px-6">
-        <BackButton href="/" label="Voltar" className="mb-6" />
+        <BackBttn href="/" label="Voltar" className="mb-6" />
 
         <div className="bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-[var(--color-secondary)]/10">
           

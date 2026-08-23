@@ -10,7 +10,7 @@ interface BackButtonProps {
   className?: string; // Opcional: Para passar margens ou estilos extras se precisar
 }
 
-export function BackButton({ href, label = '' }: BackButtonProps) {
+export default function BackButton({ href, label = '' }: BackButtonProps) {
   const router = useRouter();
 
   // Se você passou um "href", ele funciona como um Link de navegação direta
