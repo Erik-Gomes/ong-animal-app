@@ -18,7 +18,7 @@ interface Animal {
   especie: string;
   genero: string;
   data_nascimento: string | null;
-  imagem_url: string;
+  fotos: string[];
   perfil_comportamental_pet?: PerfilComportamental | PerfilComportamental[];
   matchScore?: number;
 }
@@ -181,7 +181,7 @@ export function AdoptionGrid() {
           </Link>
 
           <Link
-            href="/gerencia"
+            href="/gerenciar-eventos"
             className="bg-white p-6 rounded-3xl shadow-sm border border-(--color-secondary)/10 flex flex-col items-center text-center gap-3 hover:shadow-md hover:border-(--color-primary)/50 hover:-translate-y-1 transition-all group cursor-pointer"
           >
             <div className="bg-(--color-primary)/10 p-4 rounded-full text-(--color-primary) group-hover:scale-110 transition-transform duration-300">
@@ -240,9 +240,9 @@ export function AdoptionGrid() {
             className="bg-(--color-background) border border-(--color-secondary)/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all group flex flex-col"
           >
             <div className="relative h-48 w-full bg-gray-200 overflow-hidden">
-              {animal.imagem_url ? (
+              {animal.fotos && animal.fotos.length > 0 ? (
                 <img
-                  src={animal.imagem_url}
+                  src={animal.fotos[0]}
                   alt={animal.nome}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />

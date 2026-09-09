@@ -216,22 +216,7 @@ export default function QuestionarioPage() {
 
             <div className="flex flex-col gap-4">
               <label className="text-lg font-bold text-(--color-secondary)">
-                5. Você já possui outros animais de estimação em casa?
-              </label>
-              <SelectorBar
-                value={sociabilidade}
-                setter={setSociabilidade}
-                labels={[
-                  'Não',
-                  '',
-                  'Sim',
-                ]}
-              />
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <label className="text-lg font-bold text-(--color-secondary)">
-                6. Qual é o tipo de residência e o espaço disponível para o animal?
+                5. Qual é o tipo de residência e o espaço disponível para o animal?
               </label>
               <SelectorBar
                 value={sociabilidade}
@@ -246,7 +231,7 @@ export default function QuestionarioPage() {
 
             <div className="flex flex-col gap-4">
               <label className="text-lg font-bold text-(--color-secondary)">
-                7. Em média, quantas horas por dia o animal ficará sozinho em casa?
+                6. Em média, quantas horas por dia o animal ficará sozinho em casa?
               </label>
               <SelectorBar
                 value={sociabilidade}
@@ -255,6 +240,22 @@ export default function QuestionarioPage() {
                   'Até 4 horas',
                   'De 4 a 8 horas',
                   'Mais de 8 horas ',
+                ]}
+              />
+            </div>
+
+
+            <div className="flex flex-col gap-4">
+              <label className="text-lg font-bold text-(--color-secondary)">
+                7. Você já possui outros animais de estimação em casa?
+              </label>
+              <SelectorBar
+                value={sociabilidade}
+                setter={setSociabilidade}
+                labels={[
+                  'Não',
+                  '',
+                  'Sim',
                 ]}
               />
             </div>

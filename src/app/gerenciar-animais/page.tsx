@@ -4,15 +4,18 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, PlusCircle, Edit, Search } from 'lucide-react';
+import { PlusCircle, Edit, Search } from 'lucide-react';
 import { calcularIdade } from '@/utils/utils'; 
+import BackBttn from '@/components/BackBttn'; // Componente padrão importado
+
+// 1. Interface atualizada para usar 'fotos' como um Array de strings
 interface Animal {
   id: string;
   nome: string;
   especie: string;
   genero: string;
   data_nascimento: string;
-  imagem_url: string;
+  fotos: string[]; 
 }
 
 export default function GerenciarAnimaisPage() {
@@ -36,11 +39,13 @@ export default function GerenciarAnimaisPage() {
         .eq('id', session.user.id)
         .single();
       if (!perfil?.is_admin) return router.push('/');
+      
       // 2. Busca todos os animais
       const { data, error } = await supabase
         .from('animais')
         .select('*')
         .order('nome', { ascending: true }); // Traz em ordem alfabética
+      
       if (!error && data) {
         setAnimais(data);
       }
@@ -60,12 +65,11 @@ export default function GerenciarAnimaisPage() {
         {/* Cabeçalho e Botões */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-(--color-secondary)/60 hover:text-(--color-primary) font-bold mb-4 transition-colors"
-            >
-              <ArrowLeft size={20} /> Voltar ao Painel
-            </Link>
+            {/* Botão de voltar padronizado */}
+            <div className="mb-4">
+              <BackBttn />
+            </div>
+            
             <h1 className="text-3xl font-black text-(--color-secondary)">
               Gerenciar Animais
             </h1>
@@ -114,9 +118,10 @@ export default function GerenciarAnimaisPage() {
                 </div>
 
                 <div className="h-48 w-full bg-gray-200 overflow-hidden">
-                  {animal.imagem_url ? (
+                  {/* 2. Lógica ajustada para pegar a primeira foto do array: animal.fotos[0] */}
+                  {animal.fotos && animal.fotos.length > 0 ? (
                     <img
-                      src={animal.imagem_url}
+                      src={animal.fotos[0]}
                       alt={animal.nome}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
