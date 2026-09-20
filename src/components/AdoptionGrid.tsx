@@ -1,14 +1,20 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { createClient } from "@/utils/supabase/client";
-import { Heart, PlusCircle, LayoutDashboard } from "lucide-react";
-import { calcularIdade } from "@/utils/utils";
+import { useState, useEffect } from 'react';
+import { createClient } from '@/utils/supabase/client';
+import { Heart, PlusCircle, LayoutDashboard } from 'lucide-react';
+import { calcularIdade } from '@/utils/utils';
+import Link from 'next/link';
 
+// 1. Interface atualizada com as 7 dimensões exatas do banco
 interface PerfilComportamental {
+  porte: number;
+  idade_perfil: number;
   nivel_energia: number;
+  sociabilidade_criancas: number;
+  sociabilidade_animais: number;
   necessidade_espaco: number;
-  sociabilidade: number;
+  independencia: number;
 }
 
 interface Animal {
@@ -17,17 +23,23 @@ interface Animal {
   especie: string;
   genero: string;
   data_nascimento: string | null;
-  imagem_url: string;
-  perfil_comportamental_pet?: PerfilComportamental | PerfilComportamental[]; 
-  matchScore?: number; 
+  fotos: string[];
+  perfil_comportamental_pet?: PerfilComportamental | PerfilComportamental[];
+  matchScore?: number;
 }
 
-function calcularSimilaridadeCosseno(vetorA: number[], vetorB: number[]): number {
+function calcularSimilaridadeCosseno(
+  vetorA: number[],
+  vetorB: number[],
+): number {
   let dotProduct = 0;
   let normA = 0;
   let normB = 0;
 
   for (let i = 0; i < vetorA.length; i++) {
+    // Se por acaso os vetores tiverem tamanhos diferentes, previne o NaN
+    if (vetorA[i] === undefined || vetorB[i] === undefined) continue;
+
     dotProduct += vetorA[i] * vetorB[i];
     normA += Math.pow(vetorA[i], 2);
     normB += Math.pow(vetorB[i], 2);
@@ -39,7 +51,7 @@ function calcularSimilaridadeCosseno(vetorA: number[], vetorB: number[]): number
 
 export function AdoptionGrid() {
   const [animais, setAnimais] = useState<Animal[]>([]);
-  const [filtroAtivo, setFiltroAtivo] = useState("Todos");
+  const [filtroAtivo, setFiltroAtivo] = useState('Todos');
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -47,52 +59,56 @@ export function AdoptionGrid() {
 
   useEffect(() => {
     async function carregarDados() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      // 1. Verifica se tem alguém logado e se é ADMIN
       if (session?.user) {
         const { data: perfil } = await supabase
-          .from("perfis")
-          .select("is_admin")
-          .eq("id", session.user.id)
+          .from('perfis')
+          .select('is_admin')
+          .eq('id', session.user.id)
           .single();
 
         if (perfil?.is_admin) {
           setIsAdmin(true);
           setLoading(false);
-          return; // Se é admin, encerramos a busca aqui para economizar processamento, pois ele não verá o grid!
+          return;
         }
       }
 
-      // 2. Se não for admin, segue o jogo normal e carrega os animais!
-      const { data: animaisData, error: animaisError } = await supabase
-        .from("animais")
-        .select(`
+      const { data: animaisData, error: animaisError } = await supabase.from(
+        'animais',
+      ).select(`
           *,
           perfil_comportamental_pet (*)
         `);
 
       if (animaisError) {
-        console.error("Erro ao buscar animais:", animaisError);
+        console.error('Erro ao buscar animais:', animaisError);
         setLoading(false);
         return;
       }
 
       let animaisProcessados = animaisData as Animal[];
 
-      // 3. Calcula o Match do Adotante (só chega aqui se não for admin)
       if (session?.user) {
         const { data: respostasData } = await supabase
-          .from("respostas_questionario")
-          .select("*")
-          .eq("id_usuario", session.user.id)
+          .from('respostas_questionario')
+          .select('*')
+          .eq('id_usuario', session.user.id)
           .single();
 
         if (respostasData) {
+          // 2. Vetor do Adotante com os nomes CORRETOS da tabela 'respostas_questionario'
           const vetorAdotante = [
-            respostasData.disposicao_passeios,
-            respostasData.tamanho_residencia,
-            respostasData.possui_outros_pets
+            respostasData.porte_preferencia || 0,
+            respostasData.idade_preferencia || 0,
+            respostasData.energia_rotina || 0,
+            respostasData.presenca_criancas || 0,
+            respostasData.presenca_animais || 0,
+            respostasData.espaco_disponivel || 0,
+            respostasData.tempo_sozinho || 0
           ];
 
           animaisProcessados = animaisData.map((animal) => {
@@ -101,21 +117,33 @@ export function AdoptionGrid() {
 
             if (!perfil) return animal;
 
+            // 3. Vetor do Animal com os nomes CORRETOS da tabela 'perfil_comportamental_pet'
+            // IMPORTANTE: A ordem tem que ser rigorosamente a mesma do vetorAdotante!
             const vetorAnimal = [
-              perfil.nivel_energia,
-              perfil.necessidade_espaco,
-              perfil.sociabilidade
+              perfil.porte || 0,
+              perfil.idade_perfil || 0,
+              perfil.nivel_energia || 0,
+              perfil.sociabilidade_criancas || 0,
+              perfil.sociabilidade_animais || 0,
+              perfil.necessidade_espaco || 0,
+              perfil.independencia || 0
             ];
 
-            const similaridade = calcularSimilaridadeCosseno(vetorAdotante, vetorAnimal);
-            
+            const similaridade = calcularSimilaridadeCosseno(
+              vetorAdotante,
+              vetorAnimal,
+            );
+
             return {
               ...animal,
-              matchScore: Math.round(similaridade * 100)
+              // Evita números negativos (Cosseno pode ir de -1 a 1), garantindo base mínima de 0%
+              matchScore: Math.max(0, Math.round(similaridade * 100)),
             };
           });
 
-          animaisProcessados.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+          animaisProcessados.sort(
+            (a, b) => (b.matchScore || 0) - (a.matchScore || 0),
+          );
         }
       }
 
@@ -127,77 +155,86 @@ export function AdoptionGrid() {
   }, [supabase]);
 
   const animaisFiltrados = animais.filter((animal) => {
-    if (filtroAtivo === "Todos") return true;
+    if (filtroAtivo === 'Todos') return true;
     return animal.especie.toLowerCase() === filtroAtivo.toLowerCase();
   });
 
   if (loading) {
     return (
-      <div className="w-full text-center py-10 text-[var(--color-secondary)]/50">
+      <div className="w-full text-center py-10 text-(--color-secondary)/50">
         Carregando informações...
       </div>
     );
   }
 
-  // ==========================================
-  // VISÃO DO ADMINISTRADOR
-  // ==========================================
   if (isAdmin) {
     return (
       <div className="w-full flex flex-col gap-6">
-        <div className="flex items-center gap-3 border-b border-[var(--color-secondary)]/10 pb-4">
-          <LayoutDashboard className="text-[var(--color-primary)]" size={32} />
-          <h3 className="text-2xl font-bold text-[var(--color-secondary)]">
-            Painel da ONG
+        <div className="flex items-center gap-3 border-b border-(--color-secondary)/10 pb-4">
+          <LayoutDashboard className="text-(--color-primary)" size={32} />
+          <h3 className="text-2xl font-bold text-(--color-secondary)">
+            Painel de Gerenciamento da ONG
           </h3>
         </div>
 
-        {/* Aqui você pode adicionar cards de estatísticas, botões rápidos, etc. */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-[var(--color-secondary)]/10 flex flex-col items-center text-center gap-3">
-            <div className="bg-[var(--color-primary)]/10 p-4 rounded-full text-[var(--color-primary)]">
+          <Link
+            href="/gerenciar-animais"
+            className="bg-white p-6 rounded-3xl shadow-sm border border-(--color-secondary)/10 flex flex-col items-center text-center gap-3 hover:shadow-md hover:border-(--color-primary)/50 hover:-translate-y-1 transition-all group cursor-pointer"
+          >
+            <div className="bg-(--color-primary)/10 p-4 rounded-full text-(--color-primary) group-hover:scale-110 transition-transform duration-300">
               <PlusCircle size={32} />
             </div>
-            <h4 className="font-bold text-lg text-[var(--color-secondary)]">Cadastrar Animal</h4>
-            <p className="text-sm text-[var(--color-secondary)]/60">Adicione um novo pet ao sistema para adoção.</p>
-            <button className="mt-2 text-sm font-bold text-[var(--color-primary)] ">
-              Acessar formulário
-            </button>
-          </div>
+            <h4 className="font-bold text-lg text-(--color-secondary) group-hover:text-(--color-primary) transition-colors">
+              Animais
+            </h4>
+            <p className="text-sm text-(--color-secondary)/60">
+              Adicione um novo pet ao sistema para adoção.
+            </p>
+          </Link>
 
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-[var(--color-secondary)]/10 flex flex-col items-center text-center gap-3 opacity-50">
-            <h4 className="font-bold text-lg text-[var(--color-secondary)]">Estatística 1</h4>
-            <p className="text-sm text-[var(--color-secondary)]/60">Em breve</p>
-          </div>
+          <Link
+            href="/gerenciar-eventos"
+            className="bg-white p-6 rounded-3xl shadow-sm border border-(--color-secondary)/10 flex flex-col items-center text-center gap-3 hover:shadow-md hover:border-(--color-primary)/50 hover:-translate-y-1 transition-all group cursor-pointer"
+          >
+            <div className="bg-(--color-primary)/10 p-4 rounded-full text-(--color-primary) group-hover:scale-110 transition-transform duration-300">
+              <PlusCircle size={32} />
+            </div>
+            <h4 className="font-bold text-lg text-(--color-secondary) group-hover:text-(--color-primary) transition-colors">
+              Eventos
+            </h4>
+            <p className="text-sm text-(--color-secondary)/60">
+              Crie ou edite eventos no calendário UPAR.
+            </p>
+          </Link>
 
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-[var(--color-secondary)]/10 flex flex-col items-center text-center gap-3 opacity-50">
-            <h4 className="font-bold text-lg text-[var(--color-secondary)]">Estatística 2</h4>
-            <p className="text-sm text-[var(--color-secondary)]/60">Em breve</p>
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-(--color-secondary)/10 flex flex-col items-center text-center gap-3 opacity-50">
+            <h4 className="font-bold text-lg text-(--color-secondary)">
+              Estatística 2
+            </h4>
+            <p className="text-sm text-(--color-secondary)/60">Em breve</p>
           </div>
         </div>
       </div>
     );
   }
 
-  // ==========================================
-  // VISÃO DO ADOTANTE (GRID DE ANIMAIS NORMAL)
-  // ==========================================
   return (
     <div className="w-full flex flex-col gap-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h3 className="text-2xl font-bold text-[var(--color-secondary)]">
+        <h3 className="text-2xl font-bold text-(--color-secondary)">
           Encontre seu novo amigo
         </h3>
 
         <div className="flex gap-2">
-          {["Todos", "Cachorro", "Gato"].map((filtro) => (
+          {['Todos', 'Cachorro', 'Gato'].map((filtro) => (
             <button
               key={filtro}
               onClick={() => setFiltroAtivo(filtro)}
               className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
                 filtroAtivo === filtro
-                  ? "bg-[var(--color-primary)] text-[var(--color-background)]"
-                  : "bg-[var(--color-background)] text-[var(--color-secondary)] border border-[var(--color-secondary)]/20 hover:border-[var(--color-primary)]"
+                  ? 'bg-(--color-primary) text-(--color-background)'
+                  : 'bg-(--color-background) text-(--color-secondary) border border-(--color-secondary)/20 hover:border-(--color-primary)'
               }`}
             >
               {filtro}
@@ -210,12 +247,12 @@ export function AdoptionGrid() {
         {animaisFiltrados.map((animal) => (
           <div
             key={animal.id}
-            className="bg-[var(--color-background)] border border-[var(--color-secondary)]/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all group flex flex-col"
+            className="bg-(--color-background) border border-(--color-secondary)/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all group flex flex-col"
           >
             <div className="relative h-48 w-full bg-gray-200 overflow-hidden">
-              {animal.imagem_url ? (
+              {animal.fotos && animal.fotos.length > 0 ? (
                 <img
-                  src={animal.imagem_url}
+                  src={animal.fotos[0]}
                   alt={animal.nome}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -224,11 +261,15 @@ export function AdoptionGrid() {
                   Sem Foto
                 </div>
               )}
-              
+
               {animal.matchScore !== undefined && (
                 <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-sm border border-white/20 z-10">
-                  <Heart size={14} fill="var(--color-primary)" className="text-[var(--color-primary)]" />
-                  <span className="text-sm font-black text-[var(--color-secondary)]">
+                  <Heart
+                    size={14}
+                    fill="var(--color-primary)"
+                    className="text-(--color-primary)"
+                  />
+                  <span className="text-sm font-black text-(--color-secondary)">
                     {animal.matchScore}% Match
                   </span>
                 </div>
@@ -237,14 +278,14 @@ export function AdoptionGrid() {
 
             <div className="p-5 flex flex-col gap-1">
               <div className="flex justify-between items-center">
-                <h4 className="text-xl font-extrabold text-[var(--color-secondary)]">
+                <h4 className="text-xl font-extrabold text-(--color-secondary)">
                   {animal.nome}
                 </h4>
-                <span className="text-xs font-bold px-2 py-1 bg-[var(--color-secondary)]/5 text-[var(--color-secondary)]/70 rounded-md">
+                <span className="text-xs font-bold px-2 py-1 bg-(--color-secondary)/5 text-(--color-secondary)/70 rounded-md">
                   {animal.genero}
                 </span>
               </div>
-              <p className="text-sm font-medium text-[var(--color-secondary)]/60">
+              <p className="text-sm font-medium text-(--color-secondary)/60">
                 {animal.especie} • {calcularIdade(animal.data_nascimento)}
               </p>
             </div>
@@ -252,7 +293,7 @@ export function AdoptionGrid() {
         ))}
 
         {animaisFiltrados.length === 0 && (
-          <div className="col-span-full text-center py-10 text-[var(--color-secondary)]/50">
+          <div className="col-span-full text-center py-10 text-(--color-secondary)/50">
             Nenhum {filtroAtivo.toLowerCase()} encontrado no momento.
           </div>
         )}
