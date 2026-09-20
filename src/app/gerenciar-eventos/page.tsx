@@ -10,6 +10,7 @@ interface Evento {
   titulo: string;
   data_completa: string;
   local: string;
+  horario: string;
 }
 
 export default function GerenciarEventos() {
@@ -24,6 +25,7 @@ export default function GerenciarEventos() {
     titulo: "",
     data_completa: "",
     local: "",
+    horario: "",
   });
 
   const [editandoId, setEditandoId] = useState<string | null>(null);
@@ -91,6 +93,7 @@ export default function GerenciarEventos() {
             titulo: formData.titulo,
             data_completa: formData.data_completa,
             local: formData.local,
+            horario: formData.horario,
           })
           .eq('id', editandoId);
 
@@ -107,7 +110,7 @@ export default function GerenciarEventos() {
         if (error) throw error;
       }
       
-      setFormData({ titulo: "", data_completa: "", local: ""});
+      setFormData({ titulo: "", data_completa: "", local: "", horario: "" });
       setEditandoId(null);
       setIsOutroLocal(false);
       fetchEventosFuturos();
@@ -129,7 +132,8 @@ export default function GerenciarEventos() {
     setFormData({
       titulo: evento.titulo,
       data_completa: evento.data_completa, 
-      local: evento.local
+      local: evento.local,
+      horario: evento.horario
     });
     setEditandoId(evento.id);
   };
@@ -230,13 +234,25 @@ export default function GerenciarEventos() {
               )}
             </div>
 
+            <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-600 mb-1">Horário do Evento</label>
+                <input
+                  type="time"
+                  name="horario"
+                  value={formData.horario}
+                  onChange={handleChange}
+                  required
+                  className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+                />
+              </div>
+
             <div className="flex justify-end space-x-3 pt-2">
               {editandoId && (
                 <button
                   type="button"
                   onClick={() => {
                     setEditandoId(null);
-                    setFormData({ titulo: "", data_completa: "", local: ""});
+                    setFormData({ titulo: "", data_completa: "", local: "", horario: "" });
                     setIsOutroLocal(false);
                   }}
                   className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition"

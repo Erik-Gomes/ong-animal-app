@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/static-components */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,12 +5,19 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { ClipboardList, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { SelectorBar } from '@/components/ui/SelectorBar';
 
 export default function QuestionarioPage() {
-  const [disposicao, setDisposicao] = useState<number>(3);
-  const [espaco, setEspaco] = useState<number>(3);
-  const [sociabilidade, setSociabilidade] = useState<number>(3);
+  // 1. Estados ordenados seguindo estritamente a ordem das perguntas na tela
+  const [porte, setPorte] = useState<number>(0);
+  const [idadePreferencia, setIdadePreferencia] = useState<number>(0);
+  const [energia, setEnergia] = useState<number>(0);
+  const [criancas, setCriancas] = useState<number>(0);
+  const [espaco, setEspaco] = useState<number>(0);
+  const [tempoSozinho, setTempoSozinho] = useState<number>(0);
+  const [outrosAnimais, setOutrosAnimais] = useState<number>(0);
 
+  // Estados de controle
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -40,30 +46,44 @@ export default function QuestionarioPage() {
         .single();
 
       if (data) {
-        setDisposicao(data.disposicao_passeios);
-        setEspaco(data.tamanho_residencia);
-        setSociabilidade(data.possui_outros_pets);
+        setPorte(data.porte_escolhido || 0);
+        setIdadePreferencia(data.faixa_etaria || 0);
+        setEnergia(data.disposicao_passeios || 0);
+        setCriancas(data.sociabilidade_crianca || 0);
+        setEspaco(data.tamanho_residencia || 0);
+        setTempoSozinho(data.tempo_sozinho || 0);
+        setOutrosAnimais(data.sociabilidade_animais || 0);
       }
     }
     carregarDados();
-  }, [router]);
+  }, [router, supabase]);
 
   const salvarQuestionario = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) return;
+
+    // Validação opcional: garantir que todos os 7 campos foram respondidos
+    if (!porte || !idadePreferencia || !energia || !criancas || !espaco || !tempoSozinho || !outrosAnimais) {
+      alert("Por favor, responda a todas as 7 perguntas antes de salvar.");
+      return;
+    }
 
     setLoading(true);
 
     const { error } = await supabase.from('respostas_questionario').upsert(
       {
         id_usuario: userId,
-        disposicao_passeios: disposicao,
+        porte_escolhido: porte,
+        faixa_etaria: idadePreferencia,
+        disposicao_passeios: energia,
+        sociabilidade_crianca: criancas,
         tamanho_residencia: espaco,
-        possui_outros_pets: sociabilidade,
+        tempo_sozinho: tempoSozinho,
+        sociabilidade_animais: outrosAnimais,
         criado_em: new Date().toISOString(),
       },
-      { onConflict: 'id_usuario' },
-    ); // Upsert atualiza se o id_usuario já existir
+      { onConflict: 'id_usuario' }
+    );
 
     if (!error) {
       setSucesso(true);
@@ -75,41 +95,6 @@ export default function QuestionarioPage() {
       setLoading(false);
     }
   };
-
-  // Componente reutilizável para os botões de 1 a 5
-  const SelectorBar = ({
-    value,
-    setter,
-    labels,
-  }: {
-    value: number;
-    setter: (v: number) => void;
-    labels: string[];
-  }) => (
-    <div className="flex flex-col gap-2">
-      <div className="flex justify-between w-full gap-2">
-        {[1, 2, 3].map((num) => (
-          <button
-            key={num}
-            type="button"
-            onClick={() => setter(num)}
-            className={`flex-1 py-3 rounded-xl font-black text-lg transition-all ${
-              value === num
-                ? 'bg-(--color-primary) text-white shadow-md scale-105'
-                : 'bg-(--color-secondary)/5 text-(--color-secondary)/50 hover:bg-(--color-secondary)/10'
-            }`}
-          >
-            {num}
-          </button>
-        ))}
-      </div>
-      <div className="flex justify-between text-xs font-bold text-(--color-secondary)/50 px-1">
-        <span className="w-1/3 text-center">{labels[0]}</span>
-        <span className="w-1/3 text-center">{labels[1]}</span>
-        <span className="w-1/3 text-center">{labels[2]}</span>
-      </div>
-    </div>
-  );
 
   if (sucesso) {
     return (
@@ -147,8 +132,7 @@ export default function QuestionarioPage() {
                 Teste de Perfil
               </h1>
               <p className="text-sm font-medium text-(--color-secondary)/60 mt-1">
-                Conte-nos sobre seu estilo de vida para encontrarmos o pet
-                ideal.
+                Conte-nos sobre seu estilo de vida para encontrarmos o pet ideal.
               </p>
             </div>
           </div>
@@ -159,13 +143,9 @@ export default function QuestionarioPage() {
                 1. Qual o porte de animal que você busca e que se adequa ao seu espaço?
               </label>
               <SelectorBar
-                value={disposicao}
-                setter={setDisposicao}
-                labels={[
-                  'Pequeno',
-                  'Médio',
-                  'Grande',
-                ]}
+                value={porte}
+                setter={setPorte}
+                labels={['Pequeno', 'Médio', 'Grande']}
               />
             </div>
 
@@ -174,13 +154,9 @@ export default function QuestionarioPage() {
                 2. Qual a faixa etária do animal que você tem preferência em adotar?
               </label>
               <SelectorBar
-                value={espaco}
-                setter={setEspaco}
-                labels={[
-                  'Filhote',
-                  'Adulto',
-                  'Idoso',
-                ]}
+                value={idadePreferencia}
+                setter={setIdadePreferencia}
+                labels={['Filhote', 'Adulto', 'Idoso']}
               />
             </div>
 
@@ -189,13 +165,9 @@ export default function QuestionarioPage() {
                 3. Como é a rotina da casa em termos de agitação e passeios?
               </label>
               <SelectorBar
-                value={sociabilidade}
-                setter={setSociabilidade}
-                labels={[
-                  'Rotina caseira',
-                  'Passeios regulares',
-                  'Alta',
-                ]}
+                value={energia}
+                setter={setEnergia}
+                labels={['Rotina caseira', 'Passeios regulares', 'Alta']}
               />
             </div>
 
@@ -204,13 +176,9 @@ export default function QuestionarioPage() {
                 4. Há crianças morando na residência ou que visitam com frequência?
               </label>
               <SelectorBar
-                value={sociabilidade}
-                setter={setSociabilidade}
-                labels={[
-                  'Não',
-                  'As vezes',
-                  'Sim',
-                ]}
+                value={criancas}
+                setter={setCriancas}
+                labels={['Não', 'Às vezes', 'Sim']}
               />
             </div>
 
@@ -219,13 +187,9 @@ export default function QuestionarioPage() {
                 5. Qual é o tipo de residência e o espaço disponível para o animal?
               </label>
               <SelectorBar
-                value={sociabilidade}
-                setter={setSociabilidade}
-                labels={[
-                  'Sem quintal',
-                  'Quintal pequeno',
-                  'Quintal Grande',
-                ]}
+                value={espaco}
+                setter={setEspaco}
+                labels={['Sem quintal', 'Quintal pequeno', 'Quintal Grande']}
               />
             </div>
 
@@ -234,29 +198,20 @@ export default function QuestionarioPage() {
                 6. Em média, quantas horas por dia o animal ficará sozinho em casa?
               </label>
               <SelectorBar
-                value={sociabilidade}
-                setter={setSociabilidade}
-                labels={[
-                  'Até 4 horas',
-                  'De 4 a 8 horas',
-                  'Mais de 8 horas ',
-                ]}
+                value={tempoSozinho}
+                setter={setTempoSozinho}
+                labels={['Até 4 horas', 'De 4 a 8 horas', 'Mais de 8 horas ']}
               />
             </div>
 
-
             <div className="flex flex-col gap-4">
               <label className="text-lg font-bold text-(--color-secondary)">
-                7. Você já possui outros animais de estimação em casa?
+                7. Você já possui ou recebe outros animais em casa?
               </label>
               <SelectorBar
-                value={sociabilidade}
-                setter={setSociabilidade}
-                labels={[
-                  'Não',
-                  '',
-                  'Sim',
-                ]}
+                value={outrosAnimais}
+                setter={setOutrosAnimais}
+                labels={['Não', 'Apenas visitam', 'Sim']}
               />
             </div>
 

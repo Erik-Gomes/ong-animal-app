@@ -141,7 +141,7 @@ export default function Header() {
                     onClick={() => setIsOpen(false)}
                     className="text-sm text-(--color-primary) mt-1 block"
                   >
-                    Fazer teste de perfil
+                    Refazer teste de perfil
                   </Link>
                 )}
               </div>

@@ -6,10 +6,15 @@ import { Heart, PlusCircle, LayoutDashboard } from 'lucide-react';
 import { calcularIdade } from '@/utils/utils';
 import Link from 'next/link';
 
+// 1. Interface atualizada com as 7 dimensões exatas do banco
 interface PerfilComportamental {
+  porte: number;
+  idade_perfil: number;
   nivel_energia: number;
+  sociabilidade_criancas: number;
+  sociabilidade_animais: number;
   necessidade_espaco: number;
-  sociabilidade: number;
+  independencia: number;
 }
 
 interface Animal {
@@ -32,6 +37,9 @@ function calcularSimilaridadeCosseno(
   let normB = 0;
 
   for (let i = 0; i < vetorA.length; i++) {
+    // Se por acaso os vetores tiverem tamanhos diferentes, previne o NaN
+    if (vetorA[i] === undefined || vetorB[i] === undefined) continue;
+
     dotProduct += vetorA[i] * vetorB[i];
     normA += Math.pow(vetorA[i], 2);
     normB += Math.pow(vetorB[i], 2);
@@ -55,7 +63,6 @@ export function AdoptionGrid() {
         data: { session },
       } = await supabase.auth.getSession();
 
-      // 1. Verifica se tem alguém logado e se é ADMIN
       if (session?.user) {
         const { data: perfil } = await supabase
           .from('perfis')
@@ -66,11 +73,10 @@ export function AdoptionGrid() {
         if (perfil?.is_admin) {
           setIsAdmin(true);
           setLoading(false);
-          return; // Se é admin, encerramos a busca aqui para economizar processamento, pois ele não verá o grid!
+          return;
         }
       }
 
-      // 2. Se não for admin, segue o jogo normal e carrega os animais!
       const { data: animaisData, error: animaisError } = await supabase.from(
         'animais',
       ).select(`
@@ -86,7 +92,6 @@ export function AdoptionGrid() {
 
       let animaisProcessados = animaisData as Animal[];
 
-      // 3. Calcula o Match do Adotante (só chega aqui se não for admin)
       if (session?.user) {
         const { data: respostasData } = await supabase
           .from('respostas_questionario')
@@ -95,10 +100,15 @@ export function AdoptionGrid() {
           .single();
 
         if (respostasData) {
+          // 2. Vetor do Adotante com os nomes CORRETOS da tabela 'respostas_questionario'
           const vetorAdotante = [
-            respostasData.disposicao_passeios,
-            respostasData.tamanho_residencia,
-            respostasData.possui_outros_pets,
+            respostasData.porte_preferencia || 0,
+            respostasData.idade_preferencia || 0,
+            respostasData.energia_rotina || 0,
+            respostasData.presenca_criancas || 0,
+            respostasData.presenca_animais || 0,
+            respostasData.espaco_disponivel || 0,
+            respostasData.tempo_sozinho || 0
           ];
 
           animaisProcessados = animaisData.map((animal) => {
@@ -107,10 +117,16 @@ export function AdoptionGrid() {
 
             if (!perfil) return animal;
 
+            // 3. Vetor do Animal com os nomes CORRETOS da tabela 'perfil_comportamental_pet'
+            // IMPORTANTE: A ordem tem que ser rigorosamente a mesma do vetorAdotante!
             const vetorAnimal = [
-              perfil.nivel_energia,
-              perfil.necessidade_espaco,
-              perfil.sociabilidade,
+              perfil.porte || 0,
+              perfil.idade_perfil || 0,
+              perfil.nivel_energia || 0,
+              perfil.sociabilidade_criancas || 0,
+              perfil.sociabilidade_animais || 0,
+              perfil.necessidade_espaco || 0,
+              perfil.independencia || 0
             ];
 
             const similaridade = calcularSimilaridadeCosseno(
@@ -120,7 +136,8 @@ export function AdoptionGrid() {
 
             return {
               ...animal,
-              matchScore: Math.round(similaridade * 100),
+              // Evita números negativos (Cosseno pode ir de -1 a 1), garantindo base mínima de 0%
+              matchScore: Math.max(0, Math.round(similaridade * 100)),
             };
           });
 
@@ -150,20 +167,16 @@ export function AdoptionGrid() {
     );
   }
 
-  // ==========================================
-  // VISÃO DO ADMINISTRADOR
-  // ==========================================
   if (isAdmin) {
     return (
       <div className="w-full flex flex-col gap-6">
         <div className="flex items-center gap-3 border-b border-(--color-secondary)/10 pb-4">
           <LayoutDashboard className="text-(--color-primary)" size={32} />
           <h3 className="text-2xl font-bold text-(--color-secondary)">
-            Painel de Gerenciameneto da ONG
+            Painel de Gerenciamento da ONG
           </h3>
         </div>
 
-        {/* Grid de acesso rápido */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link
             href="/gerenciar-animais"
@@ -191,7 +204,7 @@ export function AdoptionGrid() {
               Eventos
             </h4>
             <p className="text-sm text-(--color-secondary)/60">
-              Crie ou edite eventos no calendario UPAR.
+              Crie ou edite eventos no calendário UPAR.
             </p>
           </Link>
 
@@ -206,9 +219,6 @@ export function AdoptionGrid() {
     );
   }
 
-  // ==========================================
-  // VISÃO DO ADOTANTE (GRID DE ANIMAIS NORMAL)
-  // ==========================================
   return (
     <div className="w-full flex flex-col gap-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
