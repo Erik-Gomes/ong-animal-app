@@ -32,14 +32,12 @@ export function AdoptionDiscovery() {
   const [hasProfile, setHasProfile] = useState(false);
 
   useEffect(() => {
-    // 1. Instanciamos o cliente dentro do useEffect para evitar loops no Next.js
     const supabase = createClient();
 
     async function carregarDados() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
 
-        // 2. Verifica se o utilizador é Admin
         if (session?.user) {
           const { data: perfil } = await supabase
             .from('perfis')
@@ -49,11 +47,10 @@ export function AdoptionDiscovery() {
 
           if (perfil?.is_admin) {
             setIsAdmin(true);
-            return; // Se for admin, paramos a execução aqui (vai direto para o finally)
+            return;
           }
         }
 
-        // 3. Carrega todos os animais
         const { data: animaisData, error: animaisError } = await supabase.from('animais').select(`
             *,
             perfil_comportamental_pet (*)
@@ -64,10 +61,8 @@ export function AdoptionDiscovery() {
           return;
         }
 
-        // 4. Proteção contra retornos nulos do banco (Evita o erro invisível que estava a travar o site)
         let animaisProcessados = (animaisData || []) as Animal[];
 
-        // 5. Verifica se há sessão E se há animais para calcular o Match
         if (session?.user && animaisProcessados.length > 0) {
           const { data: respostasData } = await supabase
             .from('respostas_questionario')
@@ -122,13 +117,12 @@ export function AdoptionDiscovery() {
         // Se houver qualquer quebra no código, será apanhada aqui e registada
         console.error("Erro inesperado ao carregar dados:", error);
       } finally {
-        // A MÁGICA ACONTECE AQUI: Quer dê erro ou sucesso, o loading acaba!
         setLoading(false);
       }
     }
 
     carregarDados();
-  }, []); // <-- Array vazio! Impede que a página fique a recarregar infinitamente
+  }, []);
 
   // ==========================================
   // RENDERIZAÇÃO CONDICIONAL
@@ -189,22 +183,18 @@ export function AdoptionDiscovery() {
 
   if (hasProfile) {
     return (
-      <div className="w-full flex flex-col gap-6">
-        <div className="mb-2">
+      <div className="w-full flex flex-col gap-6 items-center">
+        <div className="mb-2 text-center">
           <h3 className="text-2xl font-bold text-(--color-secondary)">
             Os Seus Melhores Matches
           </h3>
           <p className="text-sm text-(--color-secondary)/60">
-            Estes animais possuem a maior compatibilidade com o seu estilo de vida.
+            Arraste para a direita para gostar ou para a esquerda para passar.
           </p>
         </div>
 
-        <div className="block md:hidden">
+        <div className="w-full">
           <AdoptionSwipe animais={animais} />
-        </div>
-
-        <div className="hidden md:block">
-          <AdoptionGridUI animais={animais} />
         </div>
       </div>
     );

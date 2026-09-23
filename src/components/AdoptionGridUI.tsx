@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Heart } from 'lucide-react';
 import { calcularIdade } from '@/utils/utils';
 
-// Exportamos as interfaces para que o AdoptionDiscovery possa usá-las também
 export interface PerfilComportamental {
   porte: number;
   idade_perfil: number;
@@ -33,7 +32,6 @@ interface AdoptionGridUIProps {
 export function AdoptionGridUI({ animais }: AdoptionGridUIProps) {
   const [filtroAtivo, setFiltroAtivo] = useState('Todos');
 
-  // A filtragem local de abas (Cachorro/Gato) continua existindo apenas para a interface
   const animaisFiltrados = animais.filter((animal) => {
     if (filtroAtivo === 'Todos') return true;
     return animal.especie.toLowerCase() === filtroAtivo.toLowerCase();
@@ -42,7 +40,6 @@ export function AdoptionGridUI({ animais }: AdoptionGridUIProps) {
   return (
     <div className="w-full flex flex-col gap-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Título removido daqui, pois o componente pai (AdoptionDiscovery) passará o título dinâmico */}
         <div className="flex gap-2">
           {['Todos', 'Cachorro', 'Gato'].map((filtro) => (
             <button

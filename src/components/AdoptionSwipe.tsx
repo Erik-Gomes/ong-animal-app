@@ -20,7 +20,7 @@ export function AdoptionSwipe({ animais }: AdoptionSwipeProps) {
   const handleNext = () => {
     if (currentIndex < animais.length) {
       setCurrentIndex((prev) => prev + 1);
-      setDragX(0); // Repõe a posição no centro para o próximo cartão
+      setDragX(0);
     }
   };
 
@@ -30,32 +30,32 @@ export function AdoptionSwipe({ animais }: AdoptionSwipeProps) {
   };
 
   // --- LÓGICA DE ARRASTE (SWIPE) ---
-  const onPointerDown = (e: React.PointerEvent) => {
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     setStartX(e.clientX);
     setIsDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
   };
 
-  const onPointerMove = (e: React.PointerEvent) => {
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     const currentX = e.clientX;
     const diferenca = currentX - startX;
     setDragX(diferenca);
   };
 
-  const onPointerUpOrLeave = () => {
+  const onPointerUpOrLeave = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     setIsDragging(false);
+    
+    e.currentTarget.releasePointerCapture(e.pointerId);
 
-    const limiteAprovacao = 120; // Pixels necessários para validar a ação
+    const limiteAprovacao = 120;
 
     if (dragX > limiteAprovacao) {
-      // Arrastou para a DIREITA (Match)
       handleMatch(animais[currentIndex]);
     } else if (dragX < -limiteAprovacao) {
-      // Arrastou para a ESQUERDA (Passar)
       handleNext();
     } else {
-      // Não arrastou o suficiente, o cartão volta ao centro
       setDragX(0);
     }
   };
@@ -106,9 +106,7 @@ export function AdoptionSwipe({ animais }: AdoptionSwipeProps) {
         onPointerCancel={onPointerUpOrLeave}
         className="relative w-full h-[60vh] max-h-[550px] min-h-[400px] bg-white rounded-3xl overflow-hidden shadow-xl border border-(--color-secondary)/10 touch-pan-y cursor-grab active:cursor-grabbing z-20 select-none"
         style={{
-          // Move o eixo X e aplica uma leve rotação de acordo com a distância
           transform: `translateX(${dragX}px) rotate(${dragX * 0.05}deg)`,
-          // Se estiver a arrastar, tira a transição para seguir o dedo instantaneamente. Se largar, anima o retorno.
           transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
         }}
       >
@@ -130,7 +128,6 @@ export function AdoptionSwipe({ animais }: AdoptionSwipeProps) {
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
-        {/* Selo LIKE (Aparece ao arrastar para a direita) */}
         <div 
           className="absolute top-8 left-8 border-4 border-(--color-primary) text-(--color-primary) font-black text-4xl px-4 py-1 rounded-lg uppercase tracking-widest rotate-[-15deg] pointer-events-none"
           style={{ opacity: likeOpacity }}
@@ -138,7 +135,6 @@ export function AdoptionSwipe({ animais }: AdoptionSwipeProps) {
           Gostei
         </div>
 
-        {/* Selo NOPE (Aparece ao arrastar para a esquerda) */}
         <div 
           className="absolute top-8 right-8 border-4 border-red-500 text-red-500 font-black text-4xl px-4 py-1 rounded-lg uppercase tracking-widest rotate-[15deg] pointer-events-none"
           style={{ opacity: nopeOpacity }}
@@ -178,7 +174,7 @@ export function AdoptionSwipe({ animais }: AdoptionSwipeProps) {
       <div className="flex items-center justify-center gap-6 mt-8 z-10">
         <button
           onClick={() => {
-            setDragX(-200); // Simula o arraste antes de saltar
+            setDragX(-200);
             setTimeout(handleNext, 200);
           }}
           className="w-16 h-16 flex items-center justify-center bg-white border border-gray-200 rounded-full shadow-md text-red-500 hover:bg-red-50 hover:scale-110 transition-all duration-200"
