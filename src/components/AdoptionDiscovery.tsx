@@ -31,98 +31,104 @@ export function AdoptionDiscovery() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
 
-  const supabase = createClient();
-
   useEffect(() => {
+    // 1. Instanciamos o cliente dentro do useEffect para evitar loops no Next.js
+    const supabase = createClient();
+
     async function carregarDados() {
-      const { data: { session } } = await supabase.auth.getSession();
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
 
-      // 1. Verifica se o usuário é Admin
-      if (session?.user) {
-        const { data: perfil } = await supabase
-          .from('perfis')
-          .select('is_admin')
-          .eq('id', session.user.id)
-          .single();
+        // 2. Verifica se o utilizador é Admin
+        if (session?.user) {
+          const { data: perfil } = await supabase
+            .from('perfis')
+            .select('is_admin')
+            .eq('id', session.user.id)
+            .single();
 
-        if (perfil?.is_admin) {
-          setIsAdmin(true);
-          setLoading(false);
-          return; // Interrompe para não carregar os animais atoa para o Admin
+          if (perfil?.is_admin) {
+            setIsAdmin(true);
+            return; // Se for admin, paramos a execução aqui (vai direto para o finally)
+          }
         }
-      }
 
-      // 2. Carrega todos os animais e seus perfis comportamentais
-      const { data: animaisData, error: animaisError } = await supabase.from('animais').select(`
-          *,
-          perfil_comportamental_pet (*)
-        `);
+        // 3. Carrega todos os animais
+        const { data: animaisData, error: animaisError } = await supabase.from('animais').select(`
+            *,
+            perfil_comportamental_pet (*)
+          `);
 
-      if (animaisError) {
-        console.error('Erro ao buscar animais:', animaisError);
-        setLoading(false);
-        return;
-      }
+        if (animaisError) {
+          console.error('Erro ao buscar animais:', animaisError);
+          return;
+        }
 
-      let animaisProcessados = animaisData as Animal[];
+        // 4. Proteção contra retornos nulos do banco (Evita o erro invisível que estava a travar o site)
+        let animaisProcessados = (animaisData || []) as Animal[];
 
-      // 3. Verifica se o usuário comum tem o questionário preenchido
-      if (session?.user) {
-        const { data: respostasData } = await supabase
-          .from('respostas_questionario')
-          .select('*')
-          .eq('id_usuario', session.user.id)
-          .single();
+        // 5. Verifica se há sessão E se há animais para calcular o Match
+        if (session?.user && animaisProcessados.length > 0) {
+          const { data: respostasData } = await supabase
+            .from('respostas_questionario')
+            .select('*')
+            .eq('id_usuario', session.user.id)
+            .single();
 
-        // Se tem respostas, ele possui perfil e aplicamos o Algoritmo
-        if (respostasData) {
-          setHasProfile(true);
+          if (respostasData) {
+            setHasProfile(true);
 
-          const vetorAdotante = [
-            respostasData.porte_escolhido || 0,
-            respostasData.faixa_etaria || 0,
-            respostasData.disposicao_passeios || 0,
-            respostasData.sociabilidade_crianca || 0,
-            respostasData.sociabilidade_animais || 0,
-            respostasData.tamanho_residencia || 0,
-            respostasData.tempo_sozinho || 0
-          ];
-
-          animaisProcessados = animaisData.map((animal) => {
-            const perfilRaw = animal.perfil_comportamental_pet;
-            const perfil = Array.isArray(perfilRaw) ? perfilRaw[0] : perfilRaw;
-
-            if (!perfil) return animal;
-
-            const vetorAnimal = [
-              perfil.porte || 0,
-              perfil.idade_perfil || 0,
-              perfil.nivel_energia || 0,
-              perfil.sociabilidade_crianca || 0,
-              perfil.sociabilidade_animais || 0,
-              perfil.necessidade_espaco || 0,
-              perfil.independencia || 0
+            const vetorAdotante = [
+              respostasData.porte_escolhido || 0,
+              respostasData.faixa_etaria || 0,
+              respostasData.disposicao_passeios || 0,
+              respostasData.sociabilidade_crianca || 0,
+              respostasData.sociabilidade_animais || 0,
+              respostasData.tamanho_residencia || 0,
+              respostasData.tempo_sozinho || 0
             ];
 
-            const similaridade = calcularSimilaridadeCosseno(vetorAdotante, vetorAnimal);
+            animaisProcessados = animaisProcessados.map((animal) => {
+              const perfilRaw = animal.perfil_comportamental_pet;
+              const perfil = Array.isArray(perfilRaw) ? perfilRaw[0] : perfilRaw;
 
-            return {
-              ...animal,
-              matchScore: Math.max(0, Math.round(similaridade * 100)),
-            };
-          });
+              if (!perfil) return animal;
 
-          // Ordena pelo Match decrescente
-          animaisProcessados.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+              const vetorAnimal = [
+                perfil.porte || 0,
+                perfil.idade_perfil || 0,
+                perfil.nivel_energia || 0,
+                perfil.sociabilidade_crianca || 0,
+                perfil.sociabilidade_animais || 0,
+                perfil.necessidade_espaco || 0,
+                perfil.independencia || 0
+              ];
+
+              const similaridade = calcularSimilaridadeCosseno(vetorAdotante, vetorAnimal);
+
+              return {
+                ...animal,
+                matchScore: Math.max(0, Math.round(similaridade * 100)),
+              };
+            });
+
+            animaisProcessados.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+          }
         }
-      }
 
-      setAnimais(animaisProcessados);
-      setLoading(false);
+        setAnimais(animaisProcessados);
+
+      } catch (error) {
+        // Se houver qualquer quebra no código, será apanhada aqui e registada
+        console.error("Erro inesperado ao carregar dados:", error);
+      } finally {
+        // A MÁGICA ACONTECE AQUI: Quer dê erro ou sucesso, o loading acaba!
+        setLoading(false);
+      }
     }
 
     carregarDados();
-  }, [supabase]);
+  }, []); // <-- Array vazio! Impede que a página fique a recarregar infinitamente
 
   // ==========================================
   // RENDERIZAÇÃO CONDICIONAL
@@ -131,12 +137,11 @@ export function AdoptionDiscovery() {
   if (loading) {
     return (
       <div className="w-full text-center py-10 text-(--color-secondary)/50">
-        Calculando os melhores matches para você...
+        Calculando os melhores matches para si...
       </div>
     );
   }
 
-  // 1. VISÃO DO ADMINISTRADOR
   if (isAdmin) {
     return (
       <div className="w-full flex flex-col gap-6">
@@ -182,25 +187,22 @@ export function AdoptionDiscovery() {
     );
   }
 
-  // 2. VISÃO DO USUÁRIO PREMIUM (COM PERFIL)
   if (hasProfile) {
     return (
       <div className="w-full flex flex-col gap-6">
         <div className="mb-2">
           <h3 className="text-2xl font-bold text-(--color-secondary)">
-            Seus Melhores Matches
+            Os Seus Melhores Matches
           </h3>
           <p className="text-sm text-(--color-secondary)/60">
             Estes animais possuem a maior compatibilidade com o seu estilo de vida.
           </p>
         </div>
 
-        {/* MOBILE: Mostra o Swipe */}
         <div className="block md:hidden">
           <AdoptionSwipe animais={animais} />
         </div>
 
-        {/* DESKTOP: Mostra a Grade Ordenada */}
         <div className="hidden md:block">
           <AdoptionGridUI animais={animais} />
         </div>
@@ -208,15 +210,14 @@ export function AdoptionDiscovery() {
     );
   }
 
-  // 3. VISÃO DO VISITANTE (SEM PERFIL)
   return (
     <div className="w-full flex flex-col gap-6">
       <div className="mb-2">
         <h3 className="text-2xl font-bold text-(--color-secondary)">
-          Encontre seu novo amigo
+          Encontre o seu novo amigo
         </h3>
         <p className="text-sm text-(--color-secondary)/60">
-          Responda ao questionário de adoção para ativar nosso algoritmo de match!
+          Responda ao questionário de adoção para ativar o nosso algoritmo de match!
         </p>
       </div>
       <AdoptionGridUI animais={animais} />
