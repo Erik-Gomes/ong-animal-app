@@ -25,6 +25,15 @@ function calcularSimilaridadeCosseno(vetorA: number[], vetorB: number[]): number
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+function embaralharArray(array: any[]) {
+  const novoArray = [...array];
+  for (let i = novoArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [novoArray[i], novoArray[j]] = [novoArray[j], novoArray[i]];
+  }
+  return novoArray;
+}
+
 export function AdoptionDiscovery() {
   const [animais, setAnimais] = useState<Animal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,7 +116,16 @@ export function AdoptionDiscovery() {
               };
             });
 
-            animaisProcessados.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+            // 1. Filtra os animais com match acima de 50%
+            let animaisAptos = animaisProcessados.filter(a => a.matchScore !== undefined && a.matchScore >= 50);
+
+            // 2. Se o filtro for muito rigoroso e ninguém passar, mostra todos para não deixar a tela vazia
+            if (animaisAptos.length === 0) {
+              animaisAptos = animaisProcessados;
+            }
+
+            // 3. Embaralha a lista final em vez de usar o .sort()
+            animaisProcessados = embaralharArray(animaisAptos);
           }
         }
 
