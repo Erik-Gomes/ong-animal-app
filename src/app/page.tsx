@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import { MatchBanner } from "@/components/MatchBanner";
 import { Events } from "@/components/Events";
 import { AdoptionGrid } from "@/components/AdoptionGrid";
+import { AdoptionDiscovery } from "@/components/AdoptionDiscovery";
 
 export default function Home() {
   return (
@@ -15,7 +16,7 @@ export default function Home() {
 
         <Events />
 
-        <AdoptionGrid />
+        <AdoptionDiscovery />
       </main>
     </div>
   );

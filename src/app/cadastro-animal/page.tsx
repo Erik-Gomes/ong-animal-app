@@ -169,6 +169,20 @@ export default function CadastroAnimalPage() {
       return;
     }
 
+    try {
+      // Chama a API em background sem travar a tela do usuário
+      fetch('/api/match-retroativo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          animalId: animalCriado.id, 
+          perfilAnimal: dadosPerfil // Passa o vetor recém-criado
+        })
+      });
+    } catch (e) {
+      console.error("Erro ao processar matches retroativos", e);
+    }
+
     // Sucesso
     setSucesso(true);
     setTimeout(() => {

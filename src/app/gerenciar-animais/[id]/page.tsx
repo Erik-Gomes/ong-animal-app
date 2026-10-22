@@ -76,7 +76,7 @@ export default function EditarAnimalPage() {
       // 2. Busca o vetor comportamental completo
       const { data: perfilData } = await supabase
         .from("perfil_comportamental_pet")
-        .select("porte, idade_perfil, nivel_energia, sociabilidade_criancas, sociabilidade_animais, necessidade_espaco, independencia")
+        .select("porte, idade_perfil, nivel_energia, sociabilidade_crianca, sociabilidade_animais, necessidade_espaco, independencia")
         .eq("id_animal", animalId)
         .single();
 
@@ -84,7 +84,7 @@ export default function EditarAnimalPage() {
         setPorte(perfilData.porte ? String(perfilData.porte) : "");
         setIdadePerfil(perfilData.idade_perfil ? String(perfilData.idade_perfil) : "");
         setNivelEnergia(perfilData.nivel_energia ? String(perfilData.nivel_energia) : "");
-        setSociabilidadeCriancas(perfilData.sociabilidade_criancas ? String(perfilData.sociabilidade_criancas) : "");
+        setSociabilidadeCriancas(perfilData.sociabilidade_crianca ? String(perfilData.sociabilidade_crianca) : "");
         setSociabilidadeAnimais(perfilData.sociabilidade_animais ? String(perfilData.sociabilidade_animais) : "");
         setNecessidadeEspaco(perfilData.necessidade_espaco ? String(perfilData.necessidade_espaco) : "");
         setIndependencia(perfilData.independencia ? String(perfilData.independencia) : "");
@@ -118,7 +118,7 @@ export default function EditarAnimalPage() {
     setSalvando(true);
     setErro("");
 
-    let urlsFinais = [...fotosExistentes];
+    const urlsFinais: string[] = [...fotosExistentes];
 
     // Upload das fotos
     if (novosArquivos.length > 0) {
@@ -175,7 +175,7 @@ export default function EditarAnimalPage() {
       porte: porte ? parseInt(porte) : null,
       idade_perfil: idadePerfil ? parseInt(idadePerfil) : null,
       nivel_energia: nivelEnergia ? parseInt(nivelEnergia) : null,
-      sociabilidade_criancas: sociabilidadeCriancas ? parseInt(sociabilidadeCriancas) : null,
+      sociabilidade_crianca: sociabilidadeCriancas ? parseInt(sociabilidadeCriancas) : null,
       sociabilidade_animais: sociabilidadeAnimais ? parseInt(sociabilidadeAnimais) : null,
       necessidade_espaco: necessidadeEspaco ? parseInt(necessidadeEspaco) : null,
       independencia: independencia ? parseInt(independencia) : null,
