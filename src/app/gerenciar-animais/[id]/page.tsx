@@ -118,7 +118,7 @@ export default function EditarAnimalPage() {
     setSalvando(true);
     setErro("");
 
-    let urlsFinais = [...fotosExistentes];
+    const urlsFinais: string[] = [...fotosExistentes];
 
     // Upload das fotos
     if (novosArquivos.length > 0) {
